@@ -12,17 +12,17 @@ use Example\Domain\UserRepository;
 final class CreateUser
 {
     private UserRepository $userRepository;
-    private UserNameValidator $usernameValidator;
+    private UserNameValidator $userNameValidator;
 
-    public function __construct(UserRepository $userRepository, UserNameValidator $usernameValidator)
+    public function __construct(UserRepository $userRepository, UserNameValidator $userNameValidator)
     {
         $this->userRepository = $userRepository;
-        $this->usernameValidator = $usernameValidator;
+        $this->userNameValidator = $userNameValidator;
     }
 
     public function __invoke(string $username, string $password, string $email): User
     {
-        $this->usernameValidator->validate($username);
+        $this->userNameValidator->validate($username);
 
         if (null !== $this->userRepository->findUser($username)){
             throw new InvalidUserExistException();
