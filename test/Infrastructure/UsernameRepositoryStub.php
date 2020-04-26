@@ -15,7 +15,7 @@ final class UsernameRepositoryStub implements UserRepository
     {
         return;
     }
-    public function findUser(string $user): ?\Example\Domain\User
+    public function findUser(string $user): ?User
     {
         return null;
     }
