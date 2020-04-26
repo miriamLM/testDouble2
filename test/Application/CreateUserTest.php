@@ -6,8 +6,12 @@ namespace ExampleTest\Application;
 
 use Example\Application\CreateUser;
 use Example\Domain\Exceptions\InvalidUsernameException;
-use Example\Domain\{User, UserNameValidator};
-use ExampleTest\Infrastructure\{UsernameRepositoryDummy, UsernameRepositoryStub, SendEmailRepositoryDummy, SendEmailValidSpy};
+use Mockery;
+use Example\Domain\{Exceptions\InvalidUserExistException, User, UserNameValidator};
+use ExampleTest\Infrastructure\{UsernameRepositoryDummy,
+    SendEmailRepositoryDummy,
+    SendEmailValidSpy,
+    UserRepositoryInMemory};
 use PHPUnit\Framework\TestCase;
 use Example\Domain\UserRepository;
 
@@ -18,21 +22,18 @@ final class CreateUserTest extends TestCase
      */
     public function shouldCreateUser()
     {
-        $userRepository = new UsernameRepositoryStub();
         $usernameValidator = new UserNameValidator();
         $sendEmailRepository = new SendEmailValidSpy();
-        
-        $createUser = new CreateUser($userRepository, $usernameValidator, $sendEmailRepository);
+        $repositoryUser = Mockery::mock(UserRepository::class);
+        $createUser = new CreateUser($repositoryUser, $usernameValidator, $sendEmailRepository);
 
-        $repositoryUser = \Mockery::mock(UserRepository::class);
 
         $expectedUser = new User('validUsername', '123456', 'email@prueba');
-        
 
         $repositoryUser
             ->shouldReceive('create')
             ->once()
-            ->with($expectedUser)
+            ->with(User::class)
             ->andReturnNull();
 
         $repositoryUser
@@ -43,8 +44,9 @@ final class CreateUserTest extends TestCase
 
         $actualUser = $createUser('validUsername', '123456', 'email@prueba');
 
-        $this->assertTrue( $sendEmailRepository->sendEmailWasCalled() );
         $this->assertEquals($expectedUser, $actualUser);
+
+        $this->assertTrue($sendEmailRepository->sendEmailWasCalled());
     }
 
     public function testShouldThrowExceptionWhenUsernameIsInvalid()
@@ -56,7 +58,19 @@ final class CreateUserTest extends TestCase
 
         $createUser = new CreateUser($userRepository, $usernameValidator, $sendEmailRepository);
 
-        $createUser('#invalidUsername','123456', 'email@prueba');
+        $createUser('#invalidUsername', '123456', 'email@prueba');
+    }
+
+    public function testShouldThrowExceptionWhenUsernameExists()
+    {
+        $this->expectException(InvalidUserExistException::class);
+        $usernameValidator = new UserNameValidator();
+        $userRepository = new UserRepositoryInMemory();
+        $sendEmailRepository = new SendEmailRepositoryDummy();
+
+        $createUser = new CreateUser($userRepository, $usernameValidator, $sendEmailRepository);
+        $createUser('username', '123456', 'email@prueba');
+
     }
 
 }
