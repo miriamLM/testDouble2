@@ -65,7 +65,7 @@ final class CreateUserTest extends TestCase
     {
         $this->expectException(InvalidUserExistException::class);
         $usernameValidator = new UserNameValidator();
-        $userRepository = new UserRepositoryInMemory();
+        $userRepository = new UserRepositoryInMemory('username','123456', 'email@prueba');
         $sendEmailRepository = new SendEmailRepositoryDummy();
 
         $createUser = new CreateUser($userRepository, $usernameValidator, $sendEmailRepository);
