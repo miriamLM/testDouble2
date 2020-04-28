@@ -33,7 +33,7 @@ final class CreateUserTest extends TestCase
         $repositoryUser
             ->shouldReceive('create')
             ->once()
-            ->with(User::class)
+            ->with(\Hamcrest\Matchers::equalTo($expectedUser))
             ->andReturnNull();
 
         $repositoryUser
